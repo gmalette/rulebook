@@ -74,13 +74,13 @@ module Rulebook
     end
 
     def __find__(matchers, options)
-      __objects__(options).select do |object|
+      selected = __objects__(options).select do |object|
         matchers.all? do |properties, operator, comparator|
           value = __method_chain__(object, properties)
-          v = value.send(operator, comparator)
-          v
+          value.send(operator, comparator)
         end
       end
+      CollectionProxy.new(selected)
     end
 
     protected
@@ -90,8 +90,8 @@ module Rulebook
     end
 
     def __method_chain__(object, properties)
-      properties.reduce(object) do |o, property|
-        CollectionProxy.new(o).send(property)
+      properties.reduce(CollectionProxy.new object) do |o, property|
+        o.send(property)
       end
     end
 

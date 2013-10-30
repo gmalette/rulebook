@@ -112,6 +112,25 @@ class CollectionProxyTest < Minitest::Test
     sorted = @collection.send(:__sort__, objects, ['price', 'desc'])
     assert_equal [50, 40, 30, 20, 10, 10], sorted.map{ |o| o[:price] }
   end
+
+  def test_find_elements_one_condition
+    new_collection = @collection.items.__find__([[[:price], :>, 20]], {})
+    expected = @cart[:items].select{ |c| c[:price] > 20 }
+
+    assert_equal expected, new_collection.instance_variable_get(:@objects)
+  end
+
+  def test_find_elements_one_condition_nested
+    new_collection = @collection.__find__([[[:items, :price], :>, 20]], {})
+
+    assert_equal [@cart], new_collection.instance_variable_get(:@objects)
+  end
+
+  def test_find_elements_no_results
+    new_collection = @collection.items.__find__([[[:price], :>, 50]], {})
+
+    assert_equal [], new_collection.instance_variable_get(:@objects)
+  end
 end
 
 class CollectionProxyOperatorsTest < Minitest::Test
