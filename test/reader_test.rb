@@ -50,6 +50,7 @@ require_relative '../lib/rulebook'
 class RulebookTest < Minitest::Test
   def setup
     @reader = Rulebook::Reader.new
+
     @reader.call do
       book 'Discounts' do
         rule 'hats with coats' do |cart|
@@ -59,6 +60,7 @@ class RulebookTest < Minitest::Test
         end
       end
     end
+
     @cart = {
       :items => [
         {:category => 'hat', :price => 20},
@@ -114,22 +116,43 @@ class CollectionProxyTest < Minitest::Test
   end
 
   def test_find_elements_one_condition
-    new_collection = @collection.items.__find__([[[:price], :>, 20]], {})
+    results = @collection.items.__find__([[[:price], :>, 20]], {})
     expected = @cart[:items].select{ |c| c[:price] > 20 }
 
-    assert_equal expected, new_collection.instance_variable_get(:@objects)
+    assert_equal [expected], results
   end
 
   def test_find_elements_one_condition_nested
-    new_collection = @collection.__find__([[[:items, :price], :>, 20]], {})
+    results = @collection.__find__([[[:items, :price], :>, 20]], {})
 
-    assert_equal [@cart], new_collection.instance_variable_get(:@objects)
+    assert_equal [[@cart]], results
   end
 
   def test_find_elements_no_results
-    new_collection = @collection.items.__find__([[[:price], :>, 50]], {})
+    results = @collection.items.__find__([[[:price], :>, 50]], {})
 
-    assert_equal [], new_collection.instance_variable_get(:@objects)
+    assert_equal [[]], results
+  end
+
+  def test_find_elements_sorted_asc
+    results = @collection.items.__find__([[[:price], :>, 20]], {sort: ['price', 'asc']})
+    expected = @cart[:items].select{ |i| i[:price] > 20 }.sort_by{ |i| i[:price] }
+
+    assert_equal [expected], results
+  end
+
+  def test_find_elements_sorted_desc
+    results = @collection.items.__find__([[[:price], :>, 20]], {sort: ['price', 'desc']})
+    expected = @cart[:items].select{ |i| i[:price] > 20 }.sort_by{ |i| i[:price] * -1 }
+
+    assert_equal [expected], results
+  end
+
+  def test_find_elements_with_count
+    results = @collection.items.__find__([[[:price], :>, 20]], {count: 2})
+    expected = @cart[:items].select{ |c| c[:price] > 20 }
+
+    assert_equal [expected[0..1], expected[2..3]], results
   end
 end
 

@@ -80,10 +80,14 @@ module Rulebook
           value.send(operator, comparator)
         end
       end
-      CollectionProxy.new(selected)
+      __group__(selected, options)
     end
 
     protected
+
+    def __group__(array, options)
+      options[:count] ? array.each_slice(options[:count]).to_a : [array]
+    end
 
     def __collection_proxy__(name)
       @objects.map{ |o| __proxy__(o, name) }.flatten(1).compact
