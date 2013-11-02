@@ -117,8 +117,12 @@ module Rulebook
     def __proxy__(object, method)
       if object.respond_to?(method)
         object.method
-      elsif object.is_a?(Hash)
-        object[method] || object[method.to_s] || object[method.to_sym]
+      elsif object.respond_to?(:[])
+        begin
+          object[method] || object[method.to_s] || object[method.to_sym]
+        rescue ArgumentError, TypeError => e
+          nil
+        end
       end
     end
   end
