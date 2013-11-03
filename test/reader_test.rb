@@ -63,9 +63,9 @@ class RulebookTest < Minitest::Test
 
     @cart = {
       :items => [
-        {:category => 'hat', :price => 20},
+        {:category => 'hat', :price => 20, :handles => ["handle-20", 'other-handle']},
         {:category => ['hat'], :price => 40},
-        {:category => 'hat', :price => 50},
+        {:category => 'hat', :price => 50, :handles => "handle-50"},
         {:category => 'hat', :price => 30},
         {:category => 'hat', :price => 10},
         {:category => 'toaster', :price => 10},
@@ -81,21 +81,9 @@ class RulebookTest < Minitest::Test
   end
 end
 
-class CollectionProxyTest < Minitest::Test
+class CollectionProxyTest < RulebookTest
   def setup
-    @cart = {
-      :items => [
-        {:category => 'hat', :price => 20, :handles => ["handle-20", 'other-handle']},
-        {:category => 'hat', :price => 40},
-        {:category => 'hat', :price => 50, :handles => "handle-50"},
-        {:category => 'hat', :price => 30},
-        {:category => 'hat', :price => 10},
-        {:category => 'toaster', :price => 10},
-      ],
-      :customer => {
-        :name => "Peter Pan"
-      }
-    }
+    super
     @collection = Rulebook::CollectionProxy.new(@cart)
   end
 
