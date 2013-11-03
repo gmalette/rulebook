@@ -223,6 +223,14 @@ class ContextTest < RulebookTest
   end
 
   def test_find_returns_match_context
-    # @context.find
+    result = @context.find([@collection.items, [[[:category], :==, 'hat']], {}])
+
+    assert result.is_a?(Rulebook::MatchContext)
+    iterations = result.match_group.iterations
+
+    assert_equal 1, iterations.length
+
+    arguments = iterations.first
+    assert_equal 1, arguments.length
   end
 end

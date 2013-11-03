@@ -51,8 +51,8 @@ module Rulebook
 
     def find(*args, &block)
       options = args.last.is_a?(Hash) ? args.pop : {}
-      groups = find_groups(args, options)
-      MatchContext.new(self, groups)
+      group = find_groups(args, options)
+      MatchContext.new(self, group)
     end
 
     def apply(object, params)
@@ -63,8 +63,8 @@ module Rulebook
 
     def find_groups(args, options)
       previously_found = []
-      found = args.map { |collection, matchers, options|
-        collection.__find__(matchers, previously_found, options)
+      found = args.map { |collection, matchers, find_options|
+        collection.__find__(matchers, previously_found, find_options)
       }
 
       MatchGroup.new(found, options)
@@ -72,14 +72,16 @@ module Rulebook
   end
 
   class MatchContext
-    def initialize(parent, groups)
+    attr_accessor :match_group
+
+    def initialize(parent, match_group)
       @parent = parent
-      @groups = groups
+      @match_group = match_group
     end
 
     def call(&block)
-      @groups.each do |group|
-        Context.new(@parent, @parent.rule, *group).call(&block)
+      @match_group.each do |arguments|
+        Context.new(@parent, @parent.rule, *arguments).call(&block)
       end
     end
   end
@@ -87,18 +89,20 @@ module Rulebook
   class MatchGroup
     include Enumerable
 
+    attr_accessor :iterations
+
     def initialize(objects, options)
-      groups = objects.length > 1 ? objects[0].zip(*objects[1..-1]) : objects
+      iterations = objects.length > 1 ? objects[0].zip(*objects[1..-1]) : objects
 
       max = options.fetch(:max) { -1 }
 
-      groups = groups[0..max]
+      iterations = iterations[0..max]
 
-      @groups = groups.select{ |group| group.all? }
+      @iterations = iterations.select{ |iteration| iteration.all? }
     end
 
-    def each
-      @groups.each
+    def each(&block)
+      @iterations.each(&block)
     end
   end
 
