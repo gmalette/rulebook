@@ -192,3 +192,37 @@ class CollectionProxyOperatorsTest < Minitest::Test
     refute(collection != 20)
   end
 end
+
+
+class ContextTest < RulebookTest
+  def setup
+    super
+    @collection = Rulebook::CollectionProxy.new(@cart)
+    @context = Rulebook::Context.new(nil, nil, @collection)
+  end
+
+  def test_call_yields_arguments
+    args = nil
+    @context.call { |a| args = a }
+    assert_equal args.object_id, @collection.object_id
+  end
+
+  def test_call_yields_multiple_arguments
+    @items = Rulebook::CollectionProxy.new(@cart[:items])
+    context = Rulebook::Context.new(nil, nil, @collection, @items)
+
+    arg1 = nil
+    arg2 = nil
+    context.call do |a1, a2|
+      arg1 = a1
+      arg2 = a2
+    end
+
+    assert_equal arg1.object_id, @collection.object_id
+    assert_equal arg2.object_id, @items.object_id
+  end
+
+  def test_find_returns_match_context
+    # @context.find
+  end
+end

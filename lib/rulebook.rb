@@ -33,27 +33,72 @@ module Rulebook
     end
 
     def call(collection)
-      context = Context.new(collection)
-      context.call(&@block)
+      context = Context.new(nil, self)
+      context.call(collection, &@block)
     end
   end
 
   class Context
-    def initialize(collection)
-      @collection = collection
+    def initialize(parent, rule, *args)
+      @parent = parent
+      @rule = rule
+      @args = args
     end
 
     def call(&block)
-      instance_exec(@collection, &block)
+      instance_exec(*@args, &block)
     end
 
-    def find(*args)
+    def find(*args, &block)
       options = args.last.is_a?(Hash) ? args.pop : {}
-      groups = []
-      args.each do |collection, matchers, options|
-        matched = collection.__find__(matchers, options)
-        binding.pry
+      groups = find_groups(args, options)
+      MatchContext.new(self, groups)
+    end
+
+    def apply(object, params)
+
+    end
+
+    protected
+
+    def find_groups(args, options)
+      previously_found = []
+      found = args.map { |collection, matchers, options|
+        collection.__find__(matchers, previously_found, options)
+      }
+
+      MatchGroup.new(found, options)
+    end
+  end
+
+  class MatchContext
+    def initialize(parent, groups)
+      @parent = parent
+      @groups = groups
+    end
+
+    def call(&block)
+      @groups.each do |group|
+        Context.new(@parent, @parent.rule, *group).call(&block)
       end
+    end
+  end
+
+  class MatchGroup
+    include Enumerable
+
+    def initialize(objects, options)
+      groups = objects.length > 1 ? objects[0].zip(*objects[1..-1]) : objects
+
+      max = options.fetch(:max) { -1 }
+
+      groups = groups[0..max]
+
+      @groups = groups.select{ |group| group.all? }
+    end
+
+    def each
+      @groups.each
     end
   end
 
@@ -130,12 +175,6 @@ module Rulebook
           nil
         end
       end
-    end
-  end
-
-  class Pattern
-    def initialize(lambda, &block)
-      # p =
     end
   end
 
