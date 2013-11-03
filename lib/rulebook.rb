@@ -73,13 +73,15 @@ module Rulebook
       end
     end
 
-    def __find__(matchers, options)
+    def __find__(matchers, previously_found, options)
       selected = __objects__(options).select do |object|
+        next if previously_found.include?(object)
         matchers.all? do |properties, operator, comparator|
           value = __method_chain__(object, properties)
           value.send(operator, comparator)
         end
       end
+      previously_found.push(*selected)
       __group__(selected, options)
     end
 
@@ -102,7 +104,7 @@ module Rulebook
     def __objects__(options)
       objects = @objects.dup
       if sort = options[:sort]
-        __sort__(objects, sort)
+        objects = __sort__(objects, sort)
       end
       objects
     end
@@ -114,7 +116,7 @@ module Rulebook
       objects.sort_by! do |object|
         __proxy__(object, method)
       end
-      objects.reverse! if direction != 'asc'
+      objects = objects.reverse if direction != 'asc'
       objects
     end
 
