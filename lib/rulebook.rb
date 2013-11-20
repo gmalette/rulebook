@@ -193,8 +193,6 @@ module Rulebook
       instance_eval(&block)
     end
 
-    protected
-
     def book(name, &block)
       b = Rulebook.new(name)
       b.call(&block) if block
