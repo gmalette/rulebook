@@ -1,4 +1,6 @@
 require "rulebook/version"
+require "rulebook/lexer"
+
 require 'pry'
 require 'pry-debugger'
 

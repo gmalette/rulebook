@@ -1,0 +1,4 @@
+book Discount ->
+  rule "hats with coats" -> (cart)
+    (cart.items[category.name = "hat"], count: 2), (cart.items[category.name = "coat"], count: 1), limit: 1 -> (hats, coats)
+      apply hats, value: 20
